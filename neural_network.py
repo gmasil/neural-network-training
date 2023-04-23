@@ -2,22 +2,26 @@ import numpy as np
 
 
 class NeuralNetwork:
-    def __init__(self, learning_rate):
-        self.weights = np.array([np.random.randn(), np.random.randn()])
-        self.bias = np.random.randn()
+    def __init__(self, learning_rate=1, random=True):
+        if random:
+            self.weights = np.array([[np.random.randn(), np.random.randn()], [np.random.randn(), np.random.randn()]])
+            self.bias = np.random.randn()
+        else:
+            self.weights = np.zeros((2, 2))
+            self.bias = 0
         self.learning_rate = learning_rate
 
     def _sigmoid(self, x):
         return 1 / (1 + np.exp(-x))
 
     def predict(self, input_vector):
-        layer_1 = np.dot(input_vector, self.weights) + self.bias
+        layer_1 = np.sum(np.dot(input_vector, self.weights)) + self.bias
         layer_2 = self._sigmoid(layer_1)
         prediction = layer_2
         return prediction
 
     def _compute_gradients(self, input_vector, target):
-        layer_1 = np.dot(input_vector, self.weights) + self.bias
+        layer_1 = np.sum(np.dot(input_vector, self.weights)) + self.bias
         layer_2 = self._sigmoid(layer_1)
         prediction = layer_2
         prediction_error = np.square(prediction - target)
@@ -39,7 +43,6 @@ class NeuralNetwork:
         training_errors = []
 
         for i in range(iterations):
-            # print(f"iteration {i}")
             training_errors_of_iteration = []
 
             for i in range(len(input_vectors)):
