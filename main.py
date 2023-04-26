@@ -4,28 +4,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from neural_network import NeuralNetwork
+from data_generator import DataGenerator
+from result_plot import ResultPlot
 
 
 class Main:
 
     def __init__(self):
         self.network = None
+        self.result_plotter = ResultPlot()
+        self.training_input_vectors, self.training_targets = DataGenerator().generate_training_data(50)
         matplotlib.use("Agg")
-        self.training_input_vectors = np.array(
-            [
-                [3, 1.7],
-                [2, 1],
-                [4, 1.5],
-                [3, 4],
-                [3.5, 0.5],
-                [2, 0.5],
-                [5.5, 1],
-                [1, 1],
-            ]
-        )
-        self.training_targets = np.array([1, 0, 1, 1, 1, 0, 1, 0])
 
     def train_network(self, iterations, learning_rate, plot_log):
+        self.training_input_vectors, self.training_targets = DataGenerator().generate_training_data(50)
         self.network = NeuralNetwork(learning_rate)
         training_errors = self.network.train(self.training_input_vectors, self.training_targets, iterations)
         fig = plt.figure()
@@ -40,12 +32,12 @@ class Main:
         plt.close()
         return fig, np.amin(training_errors)
 
-    def predict_data(self, vector_x, vector_y, quiver=False):
+    def predict_data(self, vector_x, vector_y):
         if self.network is None:
             return "The network has to be trained first", "", None
         vector = np.array([vector_x, vector_y])
         prediction = self.network.predict(vector)
-        prediction_color = "g" if int(prediction + 0.5) == 1 else "r"
+        prediction_binary = 1 if int(prediction + 0.5) == 1 else 0
 
         if int(prediction + 0.5) == 1:
             certainty = prediction
@@ -53,29 +45,7 @@ class Main:
             certainty = 1 - prediction
         certainty = f"{round(certainty * 100, 2)}%"
 
-        def color(value):
-            if value == 0:
-                return 'r'
-            return 'g'
-
-        targets = np.array([color(v) for v in self.training_targets])
-        if quiver:
-            vectors = np.append(self.training_input_vectors.copy(), [vector], axis=0)
-            targets = np.append(targets, [['b']])
-            origin = np.zeros((len(vectors), 2))
-        else:
-            vectors = np.array(self.training_input_vectors.copy())
-
-        fig = plt.figure()
-        axis = plt.gca()
-        axis.set_xlim([-1, 7])
-        axis.set_ylim([-1, 7])
-        if quiver:
-            plt.quiver(origin[:, 0], origin[:, 1], vectors[:, 0], vectors[:, 1], color=targets, angles='xy', scale_units='xy', scale=1)
-        else:
-            plt.scatter(vectors[:, 0], vectors[:, 1], color=targets, s=20)
-            plt.scatter(vector[0], vector[1], color=prediction_color, s=100, marker='*')
-        plt.close()
+        fig = self.result_plotter.create_plot(self.training_input_vectors.copy(), self.training_targets.copy(), vector, prediction_binary)
 
         return prediction, certainty, fig
 
@@ -94,8 +64,8 @@ class Main:
             with gr.Column():
                 with gr.Tab("Prediction"):
                     with gr.Row():
-                        num_testvector_x = gr.Number(label="Vector X value", value=3.5, precision=3)
-                        num_testvector_y = gr.Number(label="Vector Y value", value=1.9, precision=3)
+                        num_testvector_x = gr.Slider(label="Vector X value", value=2.0, minimum=0, maximum=5, step=0.1)
+                        num_testvector_y = gr.Slider(label="Vector Y value", value=1.5, minimum=0, maximum=5, step=0.1)
                     btn_predict = gr.Button("Predict")
                     with gr.Row():
                         txt_prediction = gr.Text(label="Prediction")
@@ -109,4 +79,4 @@ with gr.Blocks() as demo:
     Main().ui()
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(server_name="0.0.0.0")
