@@ -14,12 +14,14 @@ class Main:
         self.network = None
         self.result_plotter = ResultPlot()
         self.training_input_vectors, self.training_targets = DataGenerator().generate_training_data(50)
+        self.dots = None
         matplotlib.use("Agg")
 
     def train_network(self, iterations, learning_rate, plot_log):
         self.training_input_vectors, self.training_targets = DataGenerator().generate_training_data(50)
         self.network = NeuralNetwork(learning_rate)
         training_errors = self.network.train(self.training_input_vectors, self.training_targets, iterations)
+        self.dots = self.result_plotter.create_dots(fn=self.network.predict)
         fig = plt.figure()
         plt.plot(training_errors)
         plt.xlabel("Iterations")
@@ -45,7 +47,7 @@ class Main:
             certainty = 1 - prediction
         certainty = f"{round(certainty * 100, 2)}%"
 
-        fig = self.result_plotter.create_plot(self.training_input_vectors.copy(), self.training_targets.copy(), vector, prediction_binary)
+        fig = self.result_plotter.create_plot(self.training_input_vectors.copy(), self.training_targets.copy(), vector, prediction_binary, dots=self.dots)
 
         return prediction, certainty, fig
 
