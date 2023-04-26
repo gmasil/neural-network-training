@@ -72,6 +72,8 @@ class Main:
                         txt_certainty = gr.Text(label="Certainty")
                     plot_visualize = gr.Plot()
                 btn_predict.click(fn=self.predict_data, inputs=[num_testvector_x, num_testvector_y], outputs=[txt_prediction, txt_certainty, plot_visualize])
+                num_testvector_x.change(fn=self.predict_data, inputs=[num_testvector_x, num_testvector_y], outputs=[txt_prediction, txt_certainty, plot_visualize])
+                num_testvector_y.change(fn=self.predict_data, inputs=[num_testvector_x, num_testvector_y], outputs=[txt_prediction, txt_certainty, plot_visualize])
         return ui
 
 
