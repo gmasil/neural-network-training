@@ -1,3 +1,6 @@
+import os
+from typing import Dict
+
 import gradio as gr
 import matplotlib
 import matplotlib.pyplot as plt
@@ -9,7 +12,6 @@ from data_generator import DataGenerator
 from dynamic_neural_network import DynamicNeuralNetwork
 from fc_layer import FCLayer
 from loss_functions import mse, mse_prime
-# from neural_network import NeuralNetwork
 from result_plot import ResultPlot
 
 
@@ -125,5 +127,24 @@ class Main:
 with gr.Blocks(theme=gr.themes.Default(), title="Neural Network") as demo:
     Main().ui()
 
+
 if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0")
+
+    auth_file = ".auth"
+    auth_function = None
+
+    if os.path.isfile(auth_file):
+        auth: Dict[str, str] = {}
+
+        with open(auth_file, encoding="UTF-8") as f:
+            lines = f.read().splitlines()
+            for line in lines:
+                name, pw = line.split("=")
+                auth[name] = pw
+
+        def file_auth_function(username, password):
+            return username in auth and auth[username] == password
+
+        auth_function = file_auth_function
+
+    demo.launch(server_name="0.0.0.0", auth=auth_function)
